@@ -1,0 +1,145 @@
+#include "stdafx.h"
+#include "iostream"
+#include <string>
+using namespace std;
+
+class Expression{
+public:
+	virtual void print() = 0;
+	virtual Expression *diff() = 0;
+};
+
+class Number : public Expression{
+protected:
+	int num;
+public:
+	Number(int q){ num = q; }
+	void print(){
+		cout << num;
+	}
+	Expression *diff(){
+		return (new Number(0));
+	}
+};
+
+class Variable : public Expression{
+protected:
+	char var;
+public:
+	Variable(char q){ var = q; }
+	void print(){
+		cout << var;
+	}
+	Expression *diff(){
+		return (new Number(1));
+	}
+};
+
+class Add : public Expression{
+protected:
+	Expression *e;
+	Expression *d;
+public:
+	Add(Expression *e1, Expression *e2){
+		e = e1;
+		d = e2;
+	}
+	Expression *diff(){
+		Expression *ee = e->diff();
+		Expression *dd = d->diff();
+		return new Add(ee, dd);
+	}
+	void print(){
+		cout << '(';
+		e->print();
+		cout << '+';
+		d->print();
+		cout << ')';
+	}
+};
+
+class Sub : public Expression{
+protected:
+	Expression *e;
+	Expression *d;
+public:
+	Sub(Expression *e1, Expression *e2){
+		e = e1;
+		d = e2;
+	}
+	Expression *diff(){
+		Expression *ee = e->diff();
+		Expression *dd = d->diff();
+		return new Sub(ee, dd);
+	}
+	void print(){
+		cout << '(';
+		e->print();
+		cout << '-';
+		d->print();
+		cout << ')';
+	}
+};
+
+class Mul : public Expression{
+protected:
+	Expression *e, *a;
+	Expression *d, *b;
+public:
+	Mul(Expression *e1, Expression *e2){
+		e = e1; a = e;
+		d = e2; b = d;
+	}
+	Expression *diff(){
+		Expression *ee = e->diff();
+		Expression *dd = d->diff();
+		return new Add(new Mul(b,ee), new Mul(a,dd));
+	}
+	void print(){
+		e->print(); cout << "*"; d->print();
+	}
+};
+
+class Div : public Expression{
+protected:
+	Expression *num, *a;
+	Expression *den, *b;
+public:
+	Div(Expression *e1, Expression *e2){
+		num = e1; a = num;
+		den = e2; b = den;
+	}
+	Expression *diff(){
+		Expression *num1 = num->diff();
+		Expression *den1 = den->diff();
+		return new Div(new Sub(new Mul(b, num1), new Mul(a, den1)), new Mul(b, b));
+	}
+	void print(){
+
+		num->print(); cout << "/"; den->print();
+	}
+};
+
+void main(){
+	Expression *exp = new Add(new Mul(new Variable('x'), new Number(23)), new Number(23));
+	Expression *dex = exp->diff();
+	dex->print();
+	cout << '\n';
+	Expression *exp1 = new Sub(new Add(new Variable('x'), new Add(new Variable('x'), new Number(23))), new Number(23));
+	Expression *dex1 = exp1->diff();
+	dex1->print();
+	cout << '\n';
+	Expression *exp2 = new Mul(new Variable('x'), new Number(23));
+	Expression *dex2 = exp2->diff();
+	dex2->print();
+	cout << '\n';
+	Expression *exp3 = new Div(new Variable('x'), new Add(new Variable('x'), new Number(23)));
+	Expression *dex3 = exp3->diff();
+	dex3->print();
+	cout << '\n';
+
+	Expression *m = new Mul(new Variable('z'), new Number(1));
+	m->print(); cout << '\n';
+	Expression *d = new Div(new Variable('x'), new Add(new Variable('x'), new Number(23)));
+	d->print(); cout << '\n';
+}
